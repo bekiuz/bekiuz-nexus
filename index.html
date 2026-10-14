@@ -97,8 +97,94 @@ return '<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="v
 }
 function updatePreview(){readFields();const html=renderSite(state);$('#preview').srcdoc=html;$('#preview-url').textContent='preview://'+slug(state.brand);$('#preview-status').textContent='PREVIEW SYNCED';$('#preview-size').textContent=(state.showFeatures?'Features · ':'')+(state.showProof?'Stats · ':'')+(state.showCta?'CTA · ':'')+'Responsive';$('#crumb-current').textContent=state.brand;try{localStorage.setItem('bekiuz-forge-v1',JSON.stringify({current:current,state:state,prompt:$('#prompt').value}))}catch(e){}}
 function loadTemplate(id){if(!templates[id])return;current=id;state=Object.assign({},templates[id],{showFeatures:true,showProof:true,showCta:true});$('#brand-input').value=state.brand;$('#title-input').value=state.title;$('#subtitle-input').value=state.subtitle;$('#cta-input').value=state.cta;$('#color-input').value=state.color;$('#section-features').checked=true;$('#section-proof').checked=true;$('#section-cta').checked=true;$$('.template').forEach(function(b){b.classList.toggle('active',b.dataset.template===id)});const prompts={food:'Qora-qizil dizaynda fast food restorani uchun menyu va buyurtma tugmasi bor sayt yarat',agency:'Premium dizaynda IT kompaniya uchun xizmatlar va aloqa bo‘limi bor sayt yarat',portfolio:'Dasturchi uchun loyihalar va ko‘nikmalar ko‘rsatilgan portfolio sayt yarat',academy:'O‘quv markazi uchun kurslar va ro‘yxatdan o‘tish bo‘limi bor sayt yarat',shop:'Zamonaviy onlayn do‘kon uchun mahsulotlar va xarid tugmasi bor sayt yarat',event:'Texnologik tadbir uchun ro‘yxatdan o‘tish va dastur bo‘limi bor sayt yarat'};$('#prompt').value=prompts[id];updatePreview()}
-function generateFromPrompt(){const originalPrompt=$('#prompt').value;const p=originalPrompt.toLowerCase();let id='agency';if(/fast.?food|burger|restoran|kafe|ovqat|taom|pizza|food/.test(p))id='food';else if(/akadem|academy|o‘quv|o'quv|kurs|ta’lim|talim|maktab|education/.test(p))id='academy';else if(/portfolio|dasturchi|developer|shaxsiy|resume|rezyume/.test(p))id='portfolio';else if(/do‘kon|do'kon|shop|mahsulot|xarid|store|market/.test(p))id='shop';else if(/tadbir|event|launch|konferensiya|festival/.test(p))id='event';else if(/agentlik|agency|kompaniya|company|studio|xizmat|biznes|business|it /.test(p))id='agency';loadTemplate(id);$('#prompt').value=originalPrompt;let color=null;if(/qora.?qizil|qizil.?qora|red|qizil/.test(p))color='#ef4444';else if(/ko‘k|ko'k|blue|moviy|havorang/.test(p))color='#38bdf8';else if(/yashil|green/.test(p))color='#22c55e';else if(/sariq|yellow|orange|to‘q sariq/.test(p))color='#f59e0b';else if(/pushti|pink/.test(p))color='#f472b6';else if(/binafsha|purple|violet/.test(p))color='#a78bfa';if(color){$('#color-input').value=color;updatePreview()}notify('Mos shablon yaratildi. Endi matn va ranglarini sozlashing mumkin.')}
-$$('.template').forEach(function(b){b.addEventListener('click',function(){loadTemplate(b.dataset.template);notify('Shablon tanlandi: '+b.querySelector('strong').textContent)})});
+function generateFromPrompt(){
+const originalPrompt=$('#prompt').value.trim();
+if(originalPrompt.length<4){notify('Avval qanday sayt kerakligini yoz.');$('#prompt').focus();return}
+const p=originalPrompt.toLowerCase();
+let id='agency';
+if(/tug‘ilgan kun|tug'ilgan kun|birthday|wedding|to‘y|toy|tadbir|event|launch|konferensiya|festival/.test(p))id='event';
+else if(/fast.?food|burger|restoran|kafe|ovqat|taom|pizza|food|menyu/.test(p))id='food';
+else if(/akadem|academy|o‘quv|o'quv|kurs|ta’lim|talim|maktab|education/.test(p))id='academy';
+else if(/portfolio|dasturchi|developer|shaxsiy|resume|rezyume/.test(p))id='portfolio';
+else if(/do‘kon|do'kon|shop|mahsulot|xarid|store|market|kiyim|telefon sotuv/.test(p))id='shop';
+else if(/agentlik|agency|kompaniya|company|studio|xizmat|biznes|business|it /.test(p))id='agency';
+loadTemplate(id);
+$('#prompt').value=originalPrompt;
+let color=null;
+if(/qora.?qizil|qizil.?qora|red|qizil/.test(p))color='#ef4444';
+else if(/ko‘k|ko'k|blue|moviy|havorang/.test(p))color='#38bdf8';
+else if(/yashil|green/.test(p))color='#22c55e';
+else if(/sariq|yellow|orange|to‘q sariq/.test(p))color='#f59e0b';
+else if(/pushti|pink/.test(p))color='#f472b6';
+else if(/binafsha|purple|violet/.test(p))color='#a78bfa';
+if(color)$('#color-input').value=color;
+function namedValue(pattern){
+const match=originalPrompt.match(pattern);
+if(!match||!match[1])return '';
+return match[1].replace(/\s+(?:bo‘lsin|bo'lsin|bo‘ladi|boladi|qilib ber|yaratib ber|kerak).*$/i,'').trim().replace(/^["'“«]+|["'”»]+$/g,'').slice(0,90);
+}
+const brand=namedValue(/(?:sayt(?:ning)?\s+nomi|brend(?:\s+nomi)?|kompaniya\s+nomi|brand|name)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n,.!?;]{2,48})/i);
+const customTitle=namedValue(/(?:asosiy\s+sarlavha|sarlavha|headline|title)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n;]{3,90})/i);
+const customSubtitle=namedValue(/(?:qisqacha\s+ta’rif|qisqacha\s+tarif|tavsif|description|tagline)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n;]{5,170})/i);
+const customCta=namedValue(/(?:tugma\s+matni|cta|button\s+text)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n,.!?;]{2,35})/i);
+let inferredBrand='';
+if(!brand){
+const searchable=originalPrompt.replace(/^\s*(?:menga|iltimos|sayt(?:ni)?|veb-sayt(?:ni)?|web\s+sayt(?:ni)?|website|create|make)\s+/i,'');
+const match=searchable.match(/\b([\p{Lu}][\p{L}\p{N}&.'’_-]*(?:\s+[\p{Lu}][\p{L}\p{N}&.'’_-]*){0,2})\s+uchun\b/u);
+if(match){
+const candidate=match[1].trim();
+const blocked=/^(qora|qizil|qora-qizil|oq|ko‘k|ko'k|yashil|pushti|binafsha|premium|zamonaviy|professional|minimal|dark|light|modern|luxury|fast food|web|website|sayt|yangi)$/i;
+if(!blocked.test(candidate))inferredBrand=candidate;
+}
+}
+if(brand||inferredBrand)$('#brand-input').value=(brand||inferredBrand).toLocaleUpperCase('uz-UZ');
+if(customTitle)$('#title-input').value=customTitle;
+if(customSubtitle)$('#subtitle-input').value=customSubtitle;
+if(customCta)$('#cta-input').value=customCta;
+const featureRules=[
+[/menyu|menu|taom|burger|pizza|ovqat|food/,'Menyu va tanlov','Mahsulot va taomlarni bir sahifada qulay ko‘rish.'],
+[/buyurtma|order|yetkaz|delivery|savat|cart/,'Buyurtma va yetkazish','Mijoz uchun keyingi qadamni tushunarli ko‘rsatish.'],
+[/narx|price|tarif|paket/,'Narxlar va tariflar','Xizmat yoki mahsulot narxlarini aniq taqdim etish.'],
+[/aloqa|contact|telefon|telegram|instagram|bog‘lan/,'Aloqa va murojaat','Mijozga siz bilan bog‘lanish yo‘lini ko‘rsatish.'],
+[/kurs|dars|ta’lim|talim|o‘quv|o'quv|academy/,'Kurslar va dastur','O‘quv yo‘nalishlari va dasturlarni tanishtirish.'],
+[/ro‘yxat|ro'yxat|registr|signup|form|ariza|bron|booking|rezerv/,'Ro‘yxatdan o‘tish','Keyingi qadamga yo‘naltiruvchi bo‘lim.'],
+[/galereya|gallery|rasm|foto|image|portfolio|loyiha|ishlar/,'Ishlar galereyasi','Namunalar, ishlar yoki rasmlarni ko‘rsatish.'],
+[/sharh|fikr|review|mijoz|testimonial/,'Mijozlar fikri','Ishonch uyg‘otuvchi izohlar uchun joy.'],
+[/jamoa|team|xodim|ustoz/,'Jamoa bilan tanishing','Jamoa a’zolari yoki mutaxassislarni tanishtirish.'],
+[/xizmat|service|imkoniyat|feature/,'Xizmatlar va imkoniyatlar','Taklif qilinadigan xizmatlarni tushuntirish.'],
+[/jadval|schedule|vaqt|dastur|agenda/,'Dastur va jadval','Muhim vaqtlar va rejalashtirilgan ishlar.']
+];
+const requestedFeatures=[];
+featureRules.forEach(function(rule){if(rule[0].test(p)&&!requestedFeatures.some(function(f){return f[0]===rule[1]}))requestedFeatures.push([rule[1],rule[2]])});
+if(requestedFeatures.length){
+const defaults=state.features.slice();
+state.features=requestedFeatures.slice(0,3);
+while(state.features.length<3)state.features.push(defaults[state.features.length]||['Batafsil ma’lumot','Muhim ma’lumotlarni bitta sahifada toping.']);
+}
+const summary=[];
+if(color)summary.push('siz tanlagan rang palitrasi');
+if(requestedFeatures.length)summary.push(requestedFeatures.slice(0,3).map(function(f){return f[0].toLocaleLowerCase('uz-UZ')}).join(', '));
+if(summary.length&&!customSubtitle){
+const base=templates[id].subtitle;
+$('#subtitle-input').value=base+' Sayt '+summary.join(' va ')+' bilan moslashtirildi.';
+}
+readFields();
+const html=renderSite(state);
+$('#preview').srcdoc=html;
+$('#preview-url').textContent='preview://'+slug(state.brand);
+$('#preview-status').textContent='CUSTOMIZED';
+$('#preview-size').textContent=(state.showFeatures?'Features · ':'')+(state.showProof?'Stats · ':'')+(state.showCta?'CTA · ':'')+'Responsive';
+$('#crumb-current').textContent=state.brand;
+$$('.template').forEach(function(b){b.classList.toggle('active',b.dataset.template===id)});
+try{localStorage.setItem('bekiuz-forge-v1',JSON.stringify({current:current,state:state,prompt:originalPrompt}))}catch(e){}
+const applied=[];
+if(brand||inferredBrand)applied.push('nom');
+if(customTitle)applied.push('sarlavha');
+if(customSubtitle)applied.push('ta’rif');
+if(color)applied.push('rang');
+if(requestedFeatures.length)applied.push('bo‘limlar');
+notify('Sayt varianti yangilandi'+(applied.length?': '+applied.join(', '):'')+'. Preview’ni tekshir.');
+}$$('.template').forEach(function(b){b.addEventListener('click',function(){loadTemplate(b.dataset.template);notify('Shablon tanlandi: '+b.querySelector('strong').textContent)})});
 $$('.example').forEach(function(b){b.addEventListener('click',function(){$('#prompt').value=b.dataset.prompt;generateFromPrompt()})});
 $('#generate-btn').addEventListener('click',generateFromPrompt);
 ['brand-input','title-input','subtitle-input','cta-input','color-input','section-features','section-proof','section-cta'].forEach(function(id){$('#'+id).addEventListener('input',updatePreview);$('#'+id).addEventListener('change',updatePreview)});
