@@ -124,8 +124,8 @@ if(!match||!match[1])return '';
 return match[1].replace(/\s+(?:bo‘lsin|bo'lsin|bo‘ladi|boladi|qilib ber|yaratib ber|kerak).*$/i,'').trim().replace(/^["'“«]+|["'”»]+$/g,'').slice(0,90);
 }
 const brand=namedValue(/(?:sayt(?:ning)?\s+nomi|brend(?:\s+nomi)?|kompaniya\s+nomi|brand|name)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n,.!?;]{2,48})/i);
-const customTitle=namedValue(/(?:asosiy\s+sarlavha|sarlavha|headline|title)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n;]{3,90})/i);
-const customSubtitle=namedValue(/(?:qisqacha\s+ta’rif|qisqacha\s+tarif|tavsif|description|tagline)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n;]{5,170})/i);
+const customTitle=namedValue(/(?:asosiy\s+sarlavha|sarlavha|headline|title)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n.!?;]{3,90})/i);
+const customSubtitle=namedValue(/(?:qisqacha\s+ta’rif|qisqacha\s+tarif|tavsif|description|tagline)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n.!?;]{5,170})/i);
 const customCta=namedValue(/(?:tugma\s+matni|cta|button\s+text)\s*(?:bo‘lsin|bo'lsin|:|—|=|-)?\s*["'“«]?([^"'“”«»\n,.!?;]{2,35})/i);
 let inferredBrand='';
 if(!brand){
